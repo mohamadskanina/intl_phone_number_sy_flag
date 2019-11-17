@@ -16,6 +16,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   final TextInputAction keyboardAction;
 
   final String initialCountry2LetterCode;
+  final String inputFormat;
   final String hintText;
   final String errorMessage;
 
@@ -45,6 +46,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
     this.inputBorder,
     this.inputDecoration,
     this.initialCountry2LetterCode = 'NG',
+    this.inputFormat = '(000) 000-0000',
     this.hintText = '(800) 000-0001',
     this.shouldParse = true,
     this.shouldValidate = true,
@@ -64,6 +66,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
     TextStyle textStyle,
     @required InputDecoration inputDecoration,
     String initialCountry2LetterCode = 'NG',
+    String inputFormat = '(000) 000-0000',
     bool formatInput = true,
     bool shouldParse = true,
     bool shouldValidate = true,
@@ -80,6 +83,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
       textStyle: textStyle,
       inputDecoration: inputDecoration,
       initialCountry2LetterCode: initialCountry2LetterCode,
+      inputFormat: inputFormat,
       formatInput: formatInput,
       shouldParse: shouldParse,
       shouldValidate: shouldValidate,
@@ -99,6 +103,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
     @required InputBorder inputBorder,
     @required String hintText,
     String initialCountry2LetterCode = 'NG',
+    String inputFormat = '(000) 000-0000',
     String errorMessage = 'Invalid phone number',
     bool formatInput = true,
     bool shouldParse = true,
@@ -117,6 +122,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
       inputBorder: inputBorder,
       hintText: hintText,
       initialCountry2LetterCode: initialCountry2LetterCode,
+      inputFormat: inputFormat,
       errorMessage: errorMessage,
       formatInput: formatInput,
       shouldParse: shouldParse,
@@ -144,7 +150,7 @@ class _InternationalPhoneNumberInputState
 
   List<TextInputFormatter> _buildInputFormatter() {
     List<TextInputFormatter> formatter = [
-      LengthLimitingTextInputFormatter(widget.hintText.length),
+      LengthLimitingTextInputFormatter(widget.inputFormat.length),
     ];
     if (widget.formatInput) {
       formatter.add(_kPhoneInputFormatter);
@@ -239,7 +245,7 @@ class _InternationalPhoneNumberInputState
 
   void _formatTextField() {
     String text = _controller.text;
-    String _unMaskMask = widget.hintText.replaceAll(RegExp(r'[^\d]'), '');
+    String _unMaskMask = widget.inputFormat.replaceAll(RegExp(r'[^\d]'), '');
     bool isFormatted = _controller.text.contains(RegExp(r'[^\d]'));
     bool isNotEmpty = _controller.text.isNotEmpty;
     bool isEqual = text.length == _unMaskMask.length;
@@ -254,7 +260,7 @@ class _InternationalPhoneNumberInputState
   @override
   void initState() {
     _loadCountries();
-    _kPhoneInputFormatter = PhoneMaskInputFormatter(mask: widget.hintText);
+    _kPhoneInputFormatter = PhoneMaskInputFormatter(mask: widget.inputFormat);
     _controller = widget.textFieldController ?? TextEditingController();
     _controller.addListener(_phoneNumberControllerListener);
     _controller.addListener(_formatTextField);
@@ -344,6 +350,7 @@ class _InternationalPhoneNumberInputState
               SizedBox(width: 12.0),
               Text(
                 country.dialCode,
+                style: widget.textStyle,
               )
             ],
           ));
