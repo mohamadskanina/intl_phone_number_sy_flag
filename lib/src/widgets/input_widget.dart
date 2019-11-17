@@ -212,13 +212,15 @@ class _InternationalPhoneNumberInputState
   }
 
   void _formatTextField() {
-    bool isFormatted = _controller.text.contains(RegExp(r'([\(\1\)\1\s\-])'));
+    String text = _controller.text;
+    String _unMaskMask = widget.hintText.replaceAll(RegExp(r'[^\d]'), '');
+    bool isFormatted = _controller.text.contains(RegExp(r'[^\d]'));
     bool isNotEmpty = _controller.text.isNotEmpty;
-    if (!isFormatted && isNotEmpty && widget.formatInput) {
-      TextEditingValue textEditingValue =
-          TextEditingValue(text: _controller.text);
-      textEditingValue = _kPhoneInputFormatter.formatEditUpdate(
-          _controller.value, textEditingValue);
+    bool isEqual = text.length == _unMaskMask.length;
+
+    if (!isFormatted && isNotEmpty && widget.formatInput && isEqual) {
+      TextEditingValue textEditingValue = TextEditingValue(text: text);
+      textEditingValue = _kPhoneInputFormatter.applyMask(textEditingValue);
       _controller.text = textEditingValue.text;
     }
   }
@@ -229,7 +231,7 @@ class _InternationalPhoneNumberInputState
     _kPhoneInputFormatter = PhoneMaskInputFormatter(mask: widget.hintText);
     _controller = widget.textFieldController ?? TextEditingController();
 //    _controller.addListener(_phoneNumberControllerListener);
-//    _controller.addListener(_formatTextField);
+    _controller.addListener(_formatTextField);
     super.initState();
   }
 
