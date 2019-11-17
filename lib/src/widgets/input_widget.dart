@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/src/models/country_model.dart';
 import 'package:intl_phone_number_input/src/providers/country_provider.dart';
-import 'package:intl_phone_number_input/src/utils/phone_input_formatter.dart';
+import 'package:intl_phone_number_input/src/utils/phone_mask_input_formatter.dart';
 import 'package:intl_phone_number_input/src/utils/util.dart';
 import 'package:libphonenumber/libphonenumber.dart';
 
@@ -118,7 +118,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
 
 class _InternationalPhoneNumberInputState
     extends State<InternationalPhoneNumberInput> {
-  final PhoneInputFormatter _kPhoneInputFormatter = PhoneInputFormatter();
+  PhoneMaskInputFormatter _kPhoneInputFormatter;
 
   bool _isNotValid = false;
 
@@ -129,8 +129,7 @@ class _InternationalPhoneNumberInputState
 
   List<TextInputFormatter> _buildInputFormatter() {
     List<TextInputFormatter> formatter = [
-      LengthLimitingTextInputFormatter(20),
-      WhitelistingTextInputFormatter.digitsOnly,
+      LengthLimitingTextInputFormatter(widget.hintText.length),
     ];
     if (widget.formatInput) {
       formatter.add(_kPhoneInputFormatter);
@@ -226,10 +225,11 @@ class _InternationalPhoneNumberInputState
 
   @override
   void initState() {
-    Future.delayed(Duration.zero, () => _loadCountries(context));
+    _loadCountries(context);
+    _kPhoneInputFormatter = PhoneMaskInputFormatter(mask: widget.hintText);
     _controller = widget.textFieldController ?? TextEditingController();
-    _controller.addListener(_phoneNumberControllerListener);
-    _controller.addListener(_formatTextField);
+//    _controller.addListener(_phoneNumberControllerListener);
+//    _controller.addListener(_formatTextField);
     super.initState();
   }
 
@@ -253,7 +253,7 @@ class _InternationalPhoneNumberInputState
                 setState(() {
                   _selectedCountry = value;
                 });
-                _phoneNumberControllerListener();
+//                _phoneNumberControllerListener();
               },
             ),
           ),
@@ -266,7 +266,7 @@ class _InternationalPhoneNumberInputState
               inputFormatters: _buildInputFormatter(),
               onEditingComplete: widget.onSubmit,
               onChanged: (text) {
-                _phoneNumberControllerListener();
+//                _phoneNumberControllerListener();
               },
               decoration: _getInputDecoration(widget.inputDecoration),
             ),

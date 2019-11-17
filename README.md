@@ -140,6 +140,7 @@ InternationalPhoneNumberInput.withCustomDecoration(
 # Dependencies
 
 * [libphonenumber](https://pub.dev/packages/libphonenumber)
+* [string_mask](https://pub.dev/packages/string_mask)
 
 # Credits
 
