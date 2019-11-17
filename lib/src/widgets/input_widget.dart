@@ -21,6 +21,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   final bool formatInput;
   final bool shouldParse;
   final bool shouldValidate;
+  final bool wrappedAroundForm;
 
   final InputBorder inputBorder;
   final InputDecoration inputDecoration;
@@ -41,10 +42,11 @@ class InternationalPhoneNumberInput extends StatefulWidget {
     this.inputBorder,
     this.inputDecoration,
     this.initialCountry2LetterCode = 'NG',
-    this.hintText = '(800) 000-0001 23',
+    this.hintText = '(800) 000-0001',
     this.shouldParse = true,
     this.shouldValidate = true,
     this.formatInput = true,
+    this.wrappedAroundForm = false,
     this.errorMessage = 'Invalid phone number',
   }) : super(key: key);
 
@@ -61,6 +63,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
     bool formatInput = true,
     bool shouldParse = true,
     bool shouldValidate = true,
+    bool wrappedAroundForm = false,
   }) {
     return InternationalPhoneNumberInput(
       onInputChanged: onInputChanged,
@@ -75,6 +78,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
       formatInput: formatInput,
       shouldParse: shouldParse,
       shouldValidate: shouldValidate,
+      wrappedAroundForm: wrappedAroundForm,
     );
   }
 
@@ -93,6 +97,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
     bool formatInput = true,
     bool shouldParse = true,
     bool shouldValidate = true,
+    bool wrappedAroundForm = false,
   }) {
     return InternationalPhoneNumberInput(
       onInputChanged: onInputChanged,
@@ -109,6 +114,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
       formatInput: formatInput,
       shouldParse: shouldParse,
       shouldValidate: shouldValidate,
+      wrappedAroundForm: wrappedAroundForm,
     );
   }
 
@@ -138,7 +144,7 @@ class _InternationalPhoneNumberInputState
     return formatter;
   }
 
-  _loadCountries(BuildContext context) async {
+  _loadCountries() async {
     List<Country> data = await _getCountriesDataFromJsonFile(
         context: context, countries: widget.countries);
     setState(() {
@@ -159,7 +165,7 @@ class _InternationalPhoneNumberInputState
   void _phoneNumberControllerListener() {
     _isNotValid = false;
     String parsedPhoneNumberString =
-        _controller.text.replaceAll(RegExp(r'([\(\1\)\1\s\-])'), '');
+        _controller.text.replaceAll(RegExp(r'[^\d]'), '');
 
     if (widget.shouldParse) {
       getParsedPhoneNumber(
@@ -227,10 +233,10 @@ class _InternationalPhoneNumberInputState
 
   @override
   void initState() {
-    _loadCountries(context);
+    _loadCountries();
     _kPhoneInputFormatter = PhoneMaskInputFormatter(mask: widget.hintText);
     _controller = widget.textFieldController ?? TextEditingController();
-//    _controller.addListener(_phoneNumberControllerListener);
+    _controller.addListener(_phoneNumberControllerListener);
     _controller.addListener(_formatTextField);
     super.initState();
   }
@@ -255,20 +261,26 @@ class _InternationalPhoneNumberInputState
                 setState(() {
                   _selectedCountry = value;
                 });
-//                _phoneNumberControllerListener();
+                _phoneNumberControllerListener();
               },
             ),
           ),
           Flexible(
-            child: TextField(
+            child: TextFormField(
               controller: _controller,
               focusNode: widget.focusNode,
               keyboardType: TextInputType.phone,
               textInputAction: widget.keyboardAction,
               inputFormatters: _buildInputFormatter(),
               onEditingComplete: widget.onSubmit,
+              validator: (String value) {
+                if (_isNotValid || value.isEmpty) {
+                  return widget.errorMessage;
+                }
+                return null;
+              },
               onChanged: (text) {
-//                _phoneNumberControllerListener();
+                _phoneNumberControllerListener();
               },
               decoration: _getInputDecoration(widget.inputDecoration),
             ),
@@ -283,31 +295,31 @@ class _InternationalPhoneNumberInputState
         InputDecoration(
           border: widget.inputBorder ?? UnderlineInputBorder(),
           hintText: widget.hintText,
-          errorText: _isNotValid ? widget.errorMessage : null,
+          errorText: (_isNotValid && !widget.wrappedAroundForm)
+              ? widget.errorMessage
+              : null,
         );
   }
 
   List<DropdownMenuItem<Country>> _mapCountryToDropdownItem(
-          List<Country> countries) =>
-      countries
-          .map(
-            (country) => DropdownMenuItem<Country>(
-              value: country,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Image.asset(
-                    country.flagUri,
-                    width: 32.0,
-                    package: 'intl_phone_number_input',
-                  ),
-                  SizedBox(width: 12.0),
-                  Text(
-                    country.dialCode,
-                  )
-                ],
+      List<Country> countries) {
+    return countries.map((country) {
+      return DropdownMenuItem<Country>(
+          value: country,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Image.asset(
+                country.flagUri,
+                width: 32.0,
+                package: 'intl_phone_number_input',
               ),
-            ),
-          )
-          .toList();
+              SizedBox(width: 12.0),
+              Text(
+                country.dialCode,
+              )
+            ],
+          ));
+    }).toList();
+  }
 }
