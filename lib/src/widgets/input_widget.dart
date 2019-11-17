@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/src/models/country_model.dart';
+import 'package:intl_phone_number_input/src/models/phone_number.dart';
 import 'package:intl_phone_number_input/src/providers/country_provider.dart';
 import 'package:intl_phone_number_input/src/utils/phone_mask_input_formatter.dart';
 import 'package:intl_phone_number_input/src/utils/util.dart';
 import 'package:libphonenumber/libphonenumber.dart';
 
 class InternationalPhoneNumberInput extends StatefulWidget {
-  final ValueChanged<String> onInputChanged;
+  final ValueChanged<PhoneNumber> onInputChanged;
   final ValueChanged<bool> onInputValidated;
 
   final VoidCallback onSubmit;
@@ -23,6 +24,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   final bool shouldValidate;
   final bool wrappedAroundForm;
 
+  final TextStyle textStyle;
   final InputBorder inputBorder;
   final InputDecoration inputDecoration;
 
@@ -39,6 +41,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
     this.onSubmit,
     this.keyboardAction,
     this.countries,
+    this.textStyle,
     this.inputBorder,
     this.inputDecoration,
     this.initialCountry2LetterCode = 'NG',
@@ -51,13 +54,14 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   }) : super(key: key);
 
   factory InternationalPhoneNumberInput.withCustomDecoration({
-    @required ValueChanged<String> onInputChanged,
+    @required ValueChanged<PhoneNumber> onInputChanged,
     ValueChanged<bool> onInputValidated,
     FocusNode focusNode,
     TextEditingController textFieldController,
     VoidCallback onSubmit,
     TextInputAction keyboardAction,
     List<String> countries,
+    TextStyle textStyle,
     @required InputDecoration inputDecoration,
     String initialCountry2LetterCode = 'NG',
     bool formatInput = true,
@@ -73,6 +77,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
       onSubmit: onSubmit,
       keyboardAction: keyboardAction,
       countries: countries,
+      textStyle: textStyle,
       inputDecoration: inputDecoration,
       initialCountry2LetterCode: initialCountry2LetterCode,
       formatInput: formatInput,
@@ -83,13 +88,14 @@ class InternationalPhoneNumberInput extends StatefulWidget {
   }
 
   factory InternationalPhoneNumberInput.withCustomBorder({
-    @required ValueChanged<String> onInputChanged,
+    @required ValueChanged<PhoneNumber> onInputChanged,
     @required ValueChanged<bool> onInputValidated,
     FocusNode focusNode,
     TextEditingController textFieldController,
     VoidCallback onSubmit,
     TextInputAction keyboardAction,
     List<String> countries,
+    TextStyle textStyle,
     @required InputBorder inputBorder,
     @required String hintText,
     String initialCountry2LetterCode = 'NG',
@@ -107,6 +113,7 @@ class InternationalPhoneNumberInput extends StatefulWidget {
       onSubmit: onSubmit,
       keyboardAction: keyboardAction,
       countries: countries,
+      textStyle: textStyle,
       inputBorder: inputBorder,
       hintText: hintText,
       initialCountry2LetterCode: initialCountry2LetterCode,
@@ -125,6 +132,8 @@ class InternationalPhoneNumberInput extends StatefulWidget {
 class _InternationalPhoneNumberInputState
     extends State<InternationalPhoneNumberInput> {
   PhoneMaskInputFormatter _kPhoneInputFormatter;
+
+  String _validPhoneNumber;
 
   bool _isNotValid = false;
 
@@ -181,7 +190,13 @@ class _InternationalPhoneNumberInputState
             });
           }
         } else {
-          widget.onInputChanged(phoneNumber);
+          _validPhoneNumber = phoneNumber;
+          widget.onInputChanged(new PhoneNumber(
+            phoneNumber,
+            _selectedCountry.dialCode,
+            _selectedCountry.countryCode,
+          ));
+
           if (widget.onInputValidated != null) {
             widget.onInputValidated(true);
           }
@@ -195,7 +210,12 @@ class _InternationalPhoneNumberInputState
     } else {
       String phoneNumber =
           '${_selectedCountry.dialCode}$parsedPhoneNumberString';
-      widget.onInputChanged(phoneNumber);
+      _validPhoneNumber = phoneNumber;
+      widget.onInputChanged(new PhoneNumber(
+        phoneNumber,
+        _selectedCountry.dialCode,
+        _selectedCountry.countryCode,
+      ));
     }
   }
 
@@ -272,7 +292,14 @@ class _InternationalPhoneNumberInputState
               keyboardType: TextInputType.phone,
               textInputAction: widget.keyboardAction,
               inputFormatters: _buildInputFormatter(),
-              onEditingComplete: widget.onSubmit,
+              style: widget.textStyle,
+              onEditingComplete: () {
+                widget.onSubmit();
+                widget.onInputChanged(
+                  new PhoneNumber(_validPhoneNumber, _selectedCountry.dialCode,
+                      _selectedCountry.countryCode),
+                );
+              },
               validator: (String value) {
                 if (_isNotValid || value.isEmpty) {
                   return widget.errorMessage;
