@@ -60,8 +60,6 @@ class PhoneMaskInputFormatter extends TextInputFormatter {
   TextEditingValue applyMask(TextEditingValue value) {
     final StringBuffer newText = StringBuffer();
     String newMask = mask.replaceAll(RegExp(r'[\d]'), '#');
-    print(mask);
-    print(newMask);
     var stringMask = StringMask(newMask);
 
     String newValue = stringMask.apply(value?.text);

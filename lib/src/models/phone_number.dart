@@ -1,13 +1,38 @@
-class PhoneNumber {
-  final String internationalPhoneNumber;
-  final String countryDialCode;
-  final String country2letterCode;
+import 'package:libphonenumber/libphonenumber.dart';
 
-  PhoneNumber(this.internationalPhoneNumber, this.countryDialCode,
-      this.country2letterCode);
+class PhoneNumber {
+  final String phoneNumber;
+  final String localPhoneNumber;
+  final String dialCode;
+  final String isoCode;
+
+  PhoneNumber(
+      {this.phoneNumber, this.localPhoneNumber, this.dialCode, this.isoCode});
 
   @override
   String toString() {
-    return internationalPhoneNumber;
+    return phoneNumber;
+  }
+
+  static Future<PhoneNumber> getRegionInfoFromPhoneNumber(
+    String phoneNumber, {
+    String isoCode = '',
+  }) async {
+    RegionInfo regionInfo = await PhoneNumberUtil.getRegionInfo(
+        phoneNumber: phoneNumber, isoCode: isoCode);
+
+    String internationalPhoneNumber =
+        await PhoneNumberUtil.normalizePhoneNumber(
+            phoneNumber: phoneNumber, isoCode: regionInfo.isoCode);
+
+    return PhoneNumber(
+        phoneNumber: internationalPhoneNumber,
+        localPhoneNumber: regionInfo.formattedPhoneNumber,
+        dialCode: regionInfo.regionPrefix,
+        isoCode: regionInfo.isoCode);
+  }
+
+  static String getParsableNumber(String phoneNumber, String dialCode) {
+    return phoneNumber.replaceAll('+$dialCode', '');
   }
 }

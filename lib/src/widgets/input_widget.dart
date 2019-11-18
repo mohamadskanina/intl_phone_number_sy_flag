@@ -150,7 +150,8 @@ class _InternationalPhoneNumberInputState
 
   List<TextInputFormatter> _buildInputFormatter() {
     List<TextInputFormatter> formatter = [
-      LengthLimitingTextInputFormatter(widget.inputFormat.length),
+//      LengthLimitingTextInputFormatter(widget.inputFormat.length),
+      LengthLimitingTextInputFormatter(20),
     ];
     if (widget.formatInput) {
       formatter.add(_kPhoneInputFormatter);
@@ -184,7 +185,7 @@ class _InternationalPhoneNumberInputState
 
     if (widget.shouldParse) {
       getParsedPhoneNumber(
-              parsedPhoneNumberString, _selectedCountry.countryCode)
+              parsedPhoneNumberString, _selectedCountry?.countryCode)
           .then((phoneNumber) {
         if (phoneNumber == null) {
           if (widget.onInputValidated != null) {
@@ -198,9 +199,9 @@ class _InternationalPhoneNumberInputState
         } else {
           _validPhoneNumber = phoneNumber;
           widget.onInputChanged(new PhoneNumber(
-            phoneNumber,
-            _selectedCountry.dialCode,
-            _selectedCountry.countryCode,
+            phoneNumber: phoneNumber,
+            dialCode: _selectedCountry.dialCode,
+            isoCode: _selectedCountry.countryCode,
           ));
 
           if (widget.onInputValidated != null) {
@@ -218,15 +219,16 @@ class _InternationalPhoneNumberInputState
           '${_selectedCountry.dialCode}$parsedPhoneNumberString';
       _validPhoneNumber = phoneNumber;
       widget.onInputChanged(new PhoneNumber(
-        phoneNumber,
-        _selectedCountry.dialCode,
-        _selectedCountry.countryCode,
+        phoneNumber: phoneNumber,
+        dialCode: _selectedCountry.dialCode,
+        isoCode: _selectedCountry.countryCode,
       ));
     }
   }
 
   static Future<String> getParsedPhoneNumber(
       String phoneNumber, String iso) async {
+    if (iso == null || iso.isEmpty) return null;
     if (phoneNumber.isNotEmpty) {
       try {
         bool isValidPhoneNumber = await PhoneNumberUtil.isValidPhoneNumber(
@@ -302,8 +304,11 @@ class _InternationalPhoneNumberInputState
               onEditingComplete: () {
                 widget.onSubmit();
                 widget.onInputChanged(
-                  new PhoneNumber(_validPhoneNumber, _selectedCountry.dialCode,
-                      _selectedCountry.countryCode),
+                  new PhoneNumber(
+                    phoneNumber: _validPhoneNumber,
+                    dialCode: _selectedCountry.dialCode,
+                    isoCode: _selectedCountry.countryCode,
+                  ),
                 );
               },
               validator: (String value) {
