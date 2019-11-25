@@ -150,8 +150,7 @@ class _InternationalPhoneNumberInputState
 
   List<TextInputFormatter> _buildInputFormatter() {
     List<TextInputFormatter> formatter = [
-//      LengthLimitingTextInputFormatter(widget.inputFormat.length),
-      LengthLimitingTextInputFormatter(20),
+      LengthLimitingTextInputFormatter(widget.inputFormat.length),
     ];
     if (widget.formatInput) {
       formatter.add(_kPhoneInputFormatter);
@@ -247,12 +246,20 @@ class _InternationalPhoneNumberInputState
 
   void _formatTextField() {
     String text = _controller.text;
-    String _unMaskMask = widget.inputFormat.replaceAll(RegExp(r'[^\d]'), '');
     bool isFormatted = _controller.text.contains(RegExp(r'[^\d]'));
     bool isNotEmpty = _controller.text.isNotEmpty;
+
+    // ignore: unused_local_variable
+    String _unMaskMask = widget.inputFormat.replaceAll(RegExp(r'[^\d]'), '');
+    // ignore: unused_local_variable
     bool isEqual = text.length == _unMaskMask.length;
 
-    if (!isFormatted && isNotEmpty && widget.formatInput && isEqual) {
+    int firstIndexOfSeparator = widget.inputFormat.indexOf(RegExp(r'[^\d]'));
+    int lastIndexOfText = text.lastIndexOf(RegExp(r'[\d]'));
+
+    bool shouldFormat = lastIndexOfText > firstIndexOfSeparator;
+
+    if (!isFormatted && isNotEmpty && widget.formatInput && shouldFormat) {
       TextEditingValue textEditingValue = TextEditingValue(text: text);
       textEditingValue = _kPhoneInputFormatter.applyMask(textEditingValue);
       _controller.text = textEditingValue.text;
@@ -360,5 +367,17 @@ class _InternationalPhoneNumberInputState
             ],
           ));
     }).toList();
+  }
+
+  @override
+  void didUpdateWidget(InternationalPhoneNumberInput oldWidget) {
+    if (widget.initialCountry2LetterCode !=
+        oldWidget.initialCountry2LetterCode) {
+      setState(() {
+        _selectedCountry = Utils.getInitialSelectedCountry(
+            _countries, widget.initialCountry2LetterCode);
+      });
+    }
+    super.didUpdateWidget(oldWidget);
   }
 }
